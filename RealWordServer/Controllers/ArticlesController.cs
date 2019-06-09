@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using RealWordServer.Models;
 
@@ -25,6 +26,7 @@ namespace RealWordServer.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize(AuthenticationSchemes = "BearerAuthentication")]
+    [EnableCors("RealWorldServerCorsPolicy")]
     public class ArticlesController : ApiControllerBase
     {
         public ArticlesController(BloggingContext context) : base(context)

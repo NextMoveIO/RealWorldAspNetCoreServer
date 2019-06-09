@@ -37,6 +37,13 @@ namespace RealWordServer
             var connection = @"Server=(localdb)\mssqllocaldb;Database=RealWorldApp;Trusted_Connection=True;ConnectRetryCount=0";
             services.AddDbContext<BloggingContext>
                 (options => options.UseSqlServer(connection));
+
+            services.AddCors(o => o.AddPolicy("RealWorldServerCorsPolicy", builder =>
+            {
+                builder.AllowAnyOrigin()
+                       .AllowAnyMethod()
+                       .AllowAnyHeader();
+            }));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -55,6 +62,7 @@ namespace RealWordServer
             app.UseHttpsRedirection();
             app.UseMvc();
 
+            app.UseCors("RealWorldServerCorsPolicy");
             // global cors policy
             //app.UseCors(x => x
             //    .AllowAnyOrigin()

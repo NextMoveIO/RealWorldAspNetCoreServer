@@ -4,12 +4,17 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using RealWordServer.Models;
 
 namespace RealWordServer.Controllers
 {
+    public class AuthTokenDto
+    {
+        public string Token { get; set; }
+    }
     public class RegisterUserDto
     {
         public string EmailAddress { get; set; }
@@ -27,6 +32,7 @@ namespace RealWordServer.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize(AuthenticationSchemes = "BearerAuthentication")]
+    [EnableCors("RealWorldServerCorsPolicy")]
     public class AccountController : ApiControllerBase
     {
         public AccountController(BloggingContext context) : base(context)
@@ -35,7 +41,7 @@ namespace RealWordServer.Controllers
         [HttpPost]
         [Route("register")]
         [AllowAnonymous]
-        public ActionResult<string> Register(RegisterUserDto registerUserDto)
+        public ActionResult<AuthTokenDto> Register(RegisterUserDto registerUserDto)
         {
             var token = Guid.NewGuid().ToString("N");
             var user = new User { EmailAddress = registerUserDto.EmailAddress, PasswordHash = HashPassword(registerUserDto.Password) };
@@ -47,7 +53,7 @@ namespace RealWordServer.Controllers
             Context.Tokens.Add(tokenRecord);
             Context.SaveChanges();
 
-            return token;
+            return new AuthTokenDto { Token = token };
         }
 
         [HttpGet]
