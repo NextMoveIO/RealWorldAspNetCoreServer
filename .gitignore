@@ -1,3 +1,5 @@
 .vs/
-**/bin/
-**/obj/
+RealWordServer/bin/
+RealWordServer/bin/Debug/
+RealWordServer/obj/
+RealWordServer/obj/Debug/

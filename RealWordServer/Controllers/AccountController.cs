@@ -18,22 +18,19 @@ namespace RealWordServer.Controllers
 
     public class UserDto
     {
-        public string Id { get; set; }
+        public int Id { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string EmailAddress { get; set; }
     }
 
-    [Route("api/[controller]")]
     [ApiController]
-    public class AccountController : ControllerBase
+    [Route("api/[controller]")]
+    [Authorize(AuthenticationSchemes = "BearerAuthentication")]
+    public class AccountController : ApiControllerBase
     {
-        private readonly BloggingContext Context;
-
-        public AccountController(BloggingContext context)
-        {
-            Context = context;
-        }
+        public AccountController(BloggingContext context) : base(context)
+        { }
 
         [HttpPost]
         [Route("register")]
@@ -54,20 +51,13 @@ namespace RealWordServer.Controllers
         }
 
         [HttpGet]
-        [Authorize(AuthenticationSchemes = "BearerAuthentication")]
         [Route("me")]
         public ActionResult<UserDto> Me()
         {
             var identity = (ClaimsIdentity)User.Identity;
             IEnumerable<Claim> claims = identity.Claims;
 
-            return new UserDto
-            {
-                Id = claims.FirstOrDefault(_ => _.Type == ClaimTypes.NameIdentifier).Value,
-                EmailAddress = claims.FirstOrDefault(_ => _.Type == ClaimTypes.Email).Value,
-                FirstName = claims.FirstOrDefault(_ => _.Type == ClaimTypes.GivenName).Value,
-                LastName = claims.FirstOrDefault(_ => _.Type == ClaimTypes.Surname).Value,
-            };
+            return GetUser();
         }
 
         private string HashPassword(string password)
