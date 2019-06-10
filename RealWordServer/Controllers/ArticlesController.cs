@@ -77,7 +77,7 @@ namespace RealWordServer.Controllers
         }
 
         [HttpPost]
-        public ActionResult<int> Post(ArticleDto articleDto)
+        public ActionResult<ArticleDto> Post(ArticleDto articleDto)
         {
             var article = new Article
             {
@@ -91,7 +91,13 @@ namespace RealWordServer.Controllers
             Context.Articles.Add(article);
             Context.SaveChanges();
 
-            return article.ArticleId;
+            return new ArticleDto
+            {
+                Id = article.ArticleId,
+                Title = article.Title,
+                Content = article.Content,
+                State = article.State
+            };
         }
 
         [HttpPut]

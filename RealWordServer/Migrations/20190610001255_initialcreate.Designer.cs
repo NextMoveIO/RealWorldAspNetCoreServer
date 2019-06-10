@@ -10,8 +10,8 @@ using RealWordServer.Models;
 namespace RealWordServer.Migrations
 {
     [DbContext(typeof(BloggingContext))]
-    [Migration("20190609015219_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20190610001255_initialcreate")]
+    partial class initialcreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -73,7 +73,13 @@ namespace RealWordServer.Migrations
 
                     b.Property<string>("PasswordHash");
 
+                    b.Property<string>("PasswordSalt");
+
                     b.HasKey("UserId");
+
+                    b.HasIndex("EmailAddress")
+                        .IsUnique()
+                        .HasFilter("[EmailAddress] IS NOT NULL");
 
                     b.ToTable("Users");
                 });

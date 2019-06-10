@@ -71,7 +71,13 @@ namespace RealWordServer.Migrations
 
                     b.Property<string>("PasswordHash");
 
+                    b.Property<string>("PasswordSalt");
+
                     b.HasKey("UserId");
+
+                    b.HasIndex("EmailAddress")
+                        .IsUnique()
+                        .HasFilter("[EmailAddress] IS NOT NULL");
 
                     b.ToTable("Users");
                 });

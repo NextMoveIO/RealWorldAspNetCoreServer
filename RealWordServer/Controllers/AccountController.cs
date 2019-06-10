@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using RealWordServer.Helpers;
 using RealWordServer.Models;
 
 namespace RealWordServer.Controllers
@@ -20,6 +21,9 @@ namespace RealWordServer.Controllers
         public string EmailAddress { get; set; }
         public string Password { get; set; }
     }
+
+    public class LoginUserDto : RegisterUserDto
+    { }
 
     public class UserDto
     {
@@ -43,10 +47,39 @@ namespace RealWordServer.Controllers
         [AllowAnonymous]
         public ActionResult<AuthTokenDto> Register(RegisterUserDto registerUserDto)
         {
-            var token = Guid.NewGuid().ToString("N");
-            var user = new User { EmailAddress = registerUserDto.EmailAddress, PasswordHash = HashPassword(registerUserDto.Password) };
+            var emailAddress = registerUserDto.EmailAddress.ToLowerInvariant();
+            var saltHash = new CryptoKey().HashPassword(registerUserDto.Password);
+            var user = new User { EmailAddress = emailAddress, PasswordHash = saltHash.Hash, PasswordSalt = saltHash.Salt };
+
             Context.Users.Add(user);
             Context.SaveChanges();
+
+            // Login
+            var token = Guid.NewGuid().ToString("N");
+            var tokenRecord = new Token { UserId = user.UserId, Secret = token, Expires = DateTime.UtcNow.AddHours(3) };
+            Context.Tokens.Add(tokenRecord);
+            Context.SaveChanges();
+
+            return new AuthTokenDto { Token = token };
+        }
+
+        [HttpPost]
+        [Route("login")]
+        [AllowAnonymous]
+        public ActionResult<AuthTokenDto> Login(LoginUserDto loginUserDto)
+        {
+            var token = Guid.NewGuid().ToString("N");
+            var emailAddress = loginUserDto.EmailAddress.ToLowerInvariant();
+            var user = Context.Users.Where(_ => _.EmailAddress == emailAddress).FirstOrDefault();
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            if (!new CryptoKey().Verify(loginUserDto.Password, new SaltHash { Hash = user.PasswordHash, Salt = user.PasswordSalt}))
+            {
+                throw new Exception("Password mismatch");
+            }
 
             // Login
             var tokenRecord = new Token { UserId = user.UserId, Secret = token, Expires = DateTime.UtcNow.AddHours(3) };
