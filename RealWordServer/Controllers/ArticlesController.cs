@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RealWordServer.Models;
 
 namespace RealWordServer.Controllers
@@ -132,8 +133,15 @@ namespace RealWordServer.Controllers
                 return NotFound();
             }
 
-            Context.Articles.Remove(article);
-            Context.SaveChanges();
+            try
+            {
+                Context.Articles.Remove(article);
+                Context.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+
+            }
 
             return Ok();
         }
