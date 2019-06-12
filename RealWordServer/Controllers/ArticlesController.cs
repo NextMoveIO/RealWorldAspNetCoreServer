@@ -19,9 +19,14 @@ namespace RealWordServer.Controllers
         public PublishState State { get; set; }
     }
 
+    public class Response<T>
+    {
+        public T Data { get; set; }
+    }
     public class PagedResponse<T>
     {
         public T[] Data { get; set; }
+        public int Total { get; set; }
     }
 
     [ApiController]
@@ -34,10 +39,21 @@ namespace RealWordServer.Controllers
         { }
 
         [HttpGet]
-        public ActionResult<PagedResponse<ArticleDto>> Get()
+        [Route("count")]
+        public ActionResult<Response<int>> GetCount()
         {
             var userId = GetUser().Id;
-            var articles = Context.Articles.Where(_ => _.UserId == userId);
+            var totalCount = Context.Articles.Where(_ => _.UserId == userId).Count();
+
+            return new Response<int> { Data = totalCount };
+        }
+
+        [HttpGet]
+        public ActionResult<PagedResponse<ArticleDto>> Get(int skip = 0, int take = 10)
+        {
+            var userId = GetUser().Id;
+            var totalCount = Context.Articles.Where(_ => _.UserId == userId).Count();
+            var articles = Context.Articles.Where(_ => _.UserId == userId).Skip(skip).Take(take);
 
             var articlesDto = new List<ArticleDto>();
             foreach(var article in articles)
@@ -52,7 +68,8 @@ namespace RealWordServer.Controllers
             }
             return new PagedResponse<ArticleDto>
             {
-                Data = articlesDto.ToArray()
+                Data = articlesDto.ToArray(),
+                Total = totalCount
             };
         }
 
